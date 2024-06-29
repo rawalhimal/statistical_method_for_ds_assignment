@@ -8,17 +8,16 @@ import seaborn as sns
 from scipy.stats import uniform
 
 # Function to perform linear regression using the normal equation
-def linear_regression_normal_equation(X, y):
+def perform_linear_regression(X, y):
     # Add bias term by appending a column of ones to X
-    X_with_bias = np.column_stack((np.ones(len(X)), X))
+    X_bias = np.hstack((np.ones((X.shape[0], 1)), X))
     
     # Compute necessary matrices
-    X_transpose = np.transpose(X_with_bias)
-    X_transpose_X = np.dot(X_transpose, X_with_bias)
-    X_transpose_y = np.dot(X_transpose, y)
+    XtX = X_bias.T @ X_bias
+    Xty = X_bias.T @ y
     
     # Solve for theta (including bias term)
-    theta = np.linalg.solve(X_transpose_X, X_transpose_y)
+    theta = np.linalg.solve(XtX, Xty)
     
     # Return the parameters theta
     return theta
@@ -27,38 +26,38 @@ def linear_regression_normal_equation(X, y):
 # TASK 2.1
 #------------------------------------------------------
 
-# Example usage:
-# Load data using pandas
-df = pd.read_csv('gene_data.csv')
+# Load the data from CSV
+data = pd.read_csv('gene_data.csv')
 
-# Extract columns into NumPy arrays
-X_train = df[['x1', 'x3', 'x4', 'x5']].values
-y_train = df['x2'].values
+# Extract input features and target variable
+X = data[['x1', 'x3', 'x4', 'x5']].values
+y = data['x2'].values
 
-# Model1: x2 = theta1*x4 + theta2*x3^2 + theta_bias
-X_model1 = X_train[:, [2, 1]]   # Adjust columns based on model equation (x4, x3)
-theta_model1 = linear_regression_normal_equation(X_model1, y_train)
-print(f"Parameters for Model1: {theta_model1}")
+# Define different models
+# Model 1: x2 = theta1*x4 + theta2*x3^2 + theta_bias
+X_model1 = X[:, [2, 1]]   # Select relevant columns (x4, x3)
+theta1 = perform_linear_regression(X_model1, y)
+print(f"Parameters for Model 1: {theta1}")
 
-# Model2: x2 = theta1*x4 + theta2*x3^2 + theta3*x5 + theta_bias
-X_model2 = X_train[:, [2, 1, 3]]   # Adjust columns based on model equation (x4, x3, x5)
-theta_model2 = linear_regression_normal_equation(X_model2, y_train)
-print(f"Parameters for Model2: {theta_model2}")
+# Model 2: x2 = theta1*x4 + theta2*x3^2 + theta3*x5 + theta_bias
+X_model2 = X[:, [2, 1, 3]]   # Select relevant columns (x4, x3, x5)
+theta2 = perform_linear_regression(X_model2, y)
+print(f"Parameters for Model 2: {theta2}")
 
-# Model3: x2 = theta1*x3 + theta2*x4 + theta3*x5^3
-X_model3 = X_train[:, [1, 2, 3]]   # Adjust columns based on model equation (x3, x4, x5)
-theta_model3 = linear_regression_normal_equation(X_model3, y_train)
-print(f"Parameters for Model3: {theta_model3}")
+# Model 3: x2 = theta1*x3 + theta2*x4 + theta3*x5^3
+X_model3 = X[:, [1, 2, 3]]   # Select relevant columns (x3, x4, x5)
+theta3 = perform_linear_regression(X_model3, y)
+print(f"Parameters for Model 3: {theta3}")
 
-# Model4: x2 = theta1*x4 + theta2*x3^2 + theta3*x5^3 + theta_bias
-X_model4 = X_train[:, [2, 1, 3]]   # Adjust columns based on model equation (x4, x3, x5)
-theta_model4 = linear_regression_normal_equation(X_model4, y_train)
-print(f"Parameters for Model4: {theta_model4}")
+# Model 4: x2 = theta1*x4 + theta2*x3^2 + theta3*x5^3 + theta_bias
+X_model4 = X[:, [2, 1, 3]]   # Select relevant columns (x4, x3, x5)
+theta4 = perform_linear_regression(X_model4, y)
+print(f"Parameters for Model 4: {theta4}")
 
-# Model5: x2 = theta1*x4 + theta2*x1^2 + theta3*x3^2 + theta_bias
-X_model5 = X_train[:, [2, 0, 1]]   # Adjust columns based on model equation (x4, x1, x3)
-theta_model5 = linear_regression_normal_equation(X_model5, y_train)
-print(f"Parameters for Model5: {theta_model5}")
+# Model 5: x2 = theta1*x4 + theta2*x1^2 + theta3*x3^2 + theta_bias
+X_model5 = X[:, [2, 0, 1]]   # Select relevant columns (x4, x1, x3)
+theta5 = perform_linear_regression(X_model5, y)
+print(f"Parameters for Model 5: {theta5}")
 
 #---------------------------------------------------
 # TASK 2.2
@@ -67,10 +66,10 @@ print(f"Parameters for Model5: {theta_model5}")
 # Function to calculate RSS (Residual Sum of Squares)
 def calculate_rss(X, y, theta):
     # Add bias term by appending a column of ones to X
-    X_with_bias = np.column_stack((np.ones(len(X)), X))
+    X_bias = np.hstack((np.ones((X.shape[0], 1)), X))
     
     # Predicted values
-    y_pred = np.dot(X_with_bias, theta)
+    y_pred = X_bias @ theta
     
     # Residuals
     residuals = y - y_pred
@@ -81,18 +80,18 @@ def calculate_rss(X, y, theta):
     return rss
 
 # Calculate RSS for each model
-rss_model1 = calculate_rss(X_model1, y_train, theta_model1)
-rss_model2 = calculate_rss(X_model2, y_train, theta_model2)
-rss_model3 = calculate_rss(X_model3, y_train, theta_model3)
-rss_model4 = calculate_rss(X_model4, y_train, theta_model4)
-rss_model5 = calculate_rss(X_model5, y_train, theta_model5)
+rss1 = calculate_rss(X_model1, y, theta1)
+rss2 = calculate_rss(X_model2, y, theta2)
+rss3 = calculate_rss(X_model3, y, theta3)
+rss4 = calculate_rss(X_model4, y, theta4)
+rss5 = calculate_rss(X_model5, y, theta5)
 
 # Print RSS for each model
-print(f"RSS for Model1: {rss_model1}")
-print(f"RSS for Model2: {rss_model2}")
-print(f"RSS for Model3: {rss_model3}")
-print(f"RSS for Model4: {rss_model4}")
-print(f"RSS for Model5: {rss_model5}")
+print(f"RSS for Model 1: {rss1}")
+print(f"RSS for Model 2: {rss2}")
+print(f"RSS for Model 3: {rss3}")
+print(f"RSS for Model 4: {rss4}")
+print(f"RSS for Model 5: {rss5}")
 
 #---------------------------------------------------
 # TASK 2.3
@@ -101,10 +100,10 @@ print(f"RSS for Model5: {rss_model5}")
 # Function to compute log-likelihood for a given model
 def compute_log_likelihood(X, y, theta):
     # Add bias term by appending a column of ones to X
-    X_with_bias = np.column_stack((np.ones(len(X)), X))
+    X_bias = np.hstack((np.ones((X.shape[0], 1)), X))
     
     # Predicted values
-    y_pred = np.dot(X_with_bias, theta)
+    y_pred = X_bias @ theta
     
     # Residuals
     residuals = y - y_pred
@@ -116,31 +115,32 @@ def compute_log_likelihood(X, y, theta):
     n = len(X)
     
     # Degrees of freedom (number of observations minus number of parameters estimated)
-    df = n - (X.shape[1] + 1)
+    df = n - X_bias.shape[1]
     
     # Estimate variance of residuals
     sigma2 = rss / df
     
     # Calculate log-likelihood
-    log_likelihood = -n/2 * np.log(2 * np.pi * sigma2) - 1/(2 * sigma2) * np.sum(residuals ** 2)
+    log_likelihood = -0.5 * n * np.log(2 * np.pi * sigma2) - 0.5 / sigma2 * rss
     
     return log_likelihood
 
-log_likelihood_model1 = compute_log_likelihood(X_model1, y_train, theta_model1)
-log_likelihood_model2 = compute_log_likelihood(X_model2, y_train, theta_model2)
-log_likelihood_model3 = compute_log_likelihood(X_model3, y_train, theta_model3)
-log_likelihood_model4 = compute_log_likelihood(X_model4, y_train, theta_model4)
-log_likelihood_model5 = compute_log_likelihood(X_model5, y_train, theta_model5)
+log_likelihood1 = compute_log_likelihood(X_model1, y, theta1)
+log_likelihood2 = compute_log_likelihood(X_model2, y, theta2)
+log_likelihood3 = compute_log_likelihood(X_model3, y, theta3)
+log_likelihood4 = compute_log_likelihood(X_model4, y, theta4)
+log_likelihood5 = compute_log_likelihood(X_model5, y, theta5)
 
-print(f"log_likelihood for Model1: {log_likelihood_model1}")
-print(f"log_likelihood for Model2: {log_likelihood_model2}")
-print(f"log_likelihood for Model3: {log_likelihood_model3}")
-print(f"log_likelihood for Model4: {log_likelihood_model4}")
-print(f"log_likelihood for Model5: {log_likelihood_model5}")
+print(f"Log-Likelihood for Model 1: {log_likelihood1}")
+print(f"Log-Likelihood for Model 2: {log_likelihood2}")
+print(f"Log-Likelihood for Model 3: {log_likelihood3}")
+print(f"Log-Likelihood for Model 4: {log_likelihood4}")
+print(f"Log-Likelihood for Model 5: {log_likelihood5}")
 
 #--------------------------------------------------------
-#TASK 2.4
+# TASK 2.4
 #-------------------------------------------------------
+
 # Function to calculate AIC for a given model
 def calculate_aic(log_likelihood, num_params):
     return -2 * log_likelihood + 2 * num_params
@@ -149,55 +149,53 @@ def calculate_aic(log_likelihood, num_params):
 def calculate_bic(log_likelihood, num_params, n):
     return -2 * log_likelihood + num_params * np.log(n)
 
-
-num_params_model1 = len(theta_model1)
-num_params_model2 = len(theta_model2)
-num_params_model3 = len(theta_model3)
-num_params_model4 = len(theta_model4)
-num_params_model5 = len(theta_model5)
+num_params1 = len(theta1)
+num_params2 = len(theta2)
+num_params3 = len(theta3)
+num_params4 = len(theta4)
+num_params5 = len(theta5)
 
 # Calculate AIC for each model
-aic_model1 = calculate_aic(log_likelihood_model1, num_params_model1)
-aic_model2 = calculate_aic(log_likelihood_model2, num_params_model2)
-aic_model3 = calculate_aic(log_likelihood_model3, num_params_model3)
-aic_model4 = calculate_aic(log_likelihood_model4, num_params_model4)
-aic_model5 = calculate_aic(log_likelihood_model5, num_params_model5)
+aic1 = calculate_aic(log_likelihood1, num_params1)
+aic2 = calculate_aic(log_likelihood2, num_params2)
+aic3 = calculate_aic(log_likelihood3, num_params3)
+aic4 = calculate_aic(log_likelihood4, num_params4)
+aic5 = calculate_aic(log_likelihood5, num_params5)
 
 # Calculate BIC for each model
-n = len(X_train)
-bic_model1 = calculate_bic(log_likelihood_model1, num_params_model1, n)
-bic_model2 = calculate_bic(log_likelihood_model2, num_params_model2, n)
-bic_model3 = calculate_bic(log_likelihood_model3, num_params_model3, n)
-bic_model4 = calculate_bic(log_likelihood_model4, num_params_model4, n)
-bic_model5 = calculate_bic(log_likelihood_model5, num_params_model5, n)
-
+n = len(X)
+bic1 = calculate_bic(log_likelihood1, num_params1, n)
+bic2 = calculate_bic(log_likelihood2, num_params2, n)
+bic3 = calculate_bic(log_likelihood3, num_params3, n)
+bic4 = calculate_bic(log_likelihood4, num_params4, n)
+bic5 = calculate_bic(log_likelihood5, num_params5, n)
 
 # Print AIC and BIC for each model
-print(f"AIC for Model1: {aic_model1}")
-print(f"AIC for Model2: {aic_model2}")
-print(f"AIC for Model3: {aic_model3}")
-print(f"AIC for Model4: {aic_model4}")
-print(f"AIC for Model5: {aic_model5}")
+print(f"AIC for Model 1: {aic1}")
+print(f"AIC for Model 2: {aic2}")
+print(f"AIC for Model 3: {aic3}")
+print(f"AIC for Model 4: {aic4}")
+print(f"AIC for Model 5: {aic5}")
 
-
-print(f"BIC for Model1: {bic_model1}")
-print(f"BIC for Model2: {bic_model2}")
-print(f"BIC for Model3: {bic_model3}")
-print(f"BIC for Model4: {bic_model4}")
-print(f"BIC for Model5: {bic_model5}")
+print(f"BIC for Model 1: {bic1}")
+print(f"BIC for Model 2: {bic2}")
+print(f"BIC for Model 3: {bic3}")
+print(f"BIC for Model 4: {bic4}")
+print(f"BIC for Model 5: {bic5}")
 
 #--------------------------------------------------------
-#TASK 2.5
+# TASK 2.5
 #-------------------------------------------------------
+
 # Function to compute residuals
 def compute_residuals(X, y, theta):
-    X_with_bias = np.column_stack((np.ones(len(X)), X))
-    y_pred = np.dot(X_with_bias, theta)
+    X_bias = np.hstack((np.ones((X.shape[0], 1)), X))
+    y_pred = X_bias @ theta
     residuals = y - y_pred
     return residuals
 
 # Function to plot histograms and Q-Q plots
-def plot_error_distribution(residuals, model_name):
+def plot_residual_analysis(residuals, model_name):
     plt.figure(figsize=(12, 5))
 
     # Plot histogram
@@ -215,69 +213,57 @@ def plot_error_distribution(residuals, model_name):
     plt.tight_layout()
     plt.show()
 
-residuals_model1 = compute_residuals(X_model1, y_train, theta_model1)
-plot_error_distribution(residuals_model1, "Model1")
+# Compute residuals for each model
+residuals1 = compute_residuals(X_model1, y, theta1)
+residuals2 = compute_residuals(X_model2, y, theta2)
+residuals3 = compute_residuals(X_model3, y, theta3)
+residuals4 = compute_residuals(X_model4, y, theta4)
+residuals5 = compute_residuals(X_model5, y, theta5)
 
-residuals_model2 = compute_residuals(X_model2, y_train, theta_model2)
-plot_error_distribution(residuals_model2, "Model2")
-
-residuals_model3 = compute_residuals(X_model3, y_train, theta_model3)
-plot_error_distribution(residuals_model3, "Model3")
-
-residuals_model4 = compute_residuals(X_model4, y_train, theta_model4)
-plot_error_distribution(residuals_model4, "Model4")
-
-residuals_model5 = compute_residuals(X_model5, y_train, theta_model5)
-plot_error_distribution(residuals_model5, "Model5")
-
-#--------------------------------------------------------
-#TASK 2.6
+# Plot residuals analysis
+plot_residual_analysis(residuals1, 'Model 1')
+plot_residual_analysis(residuals2, 'Model 2')
+plot_residual_analysis(residuals3, 'Model 3')
+plot_residual_analysis(residuals4, 'Model 4')
+plot_residual_analysis(residuals5, 'Model 5')
+# TASK 2.6
 #-------------------------------------------------------
 
-#Create a dataframe containing model residulas , AIC , BIC to select best model
-data = {'ModelName':['Model1','Model2','Model3','Model4','Model5'],
-        'RSS':[rss_model1,rss_model2,rss_model3,rss_model4,rss_model5],
-        'AIC':[aic_model1,aic_model2,aic_model3,aic_model4,aic_model5],
-        'BIC':[bic_model1,bic_model2,bic_model3,bic_model4,bic_model5]}
-df_RSS_AIC_BIC = pd.DataFrame(data=data)
+# Create a dataframe containing model residuals, AIC, and BIC
+data = {'ModelName': ['Model1', 'Model2', 'Model3', 'Model4', 'Model5'],
+        'RSS': [rss1, rss2, rss3, rss4, rss5],
+        'AIC': [aic1, aic2, aic3, aic4, aic5],
+        'BIC': [bic1, bic2, bic3, bic4, bic5]}
+
+df_RSS_AIC_BIC = pd.DataFrame(data)
 print(df_RSS_AIC_BIC)
 
 #--------------------------------------------------------
-#TASK 2.7
+# TASK 2.7
 #-------------------------------------------------------
 
-X = X_train
-y = y_train
-
-# Split the dataset (70% training, 30% testing)
+# Split the dataset into training and testing sets (70% training, 30% testing)
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
-# Prepare the data for Model 5
-# X_model5 = theta1 * x4 + theta2 * x1^2 + theta3 * x3^2 + theta_bias
+# Prepare data for Model 5
 X_train_model5 = np.column_stack((X_train[:, 2], X_train[:, 0]**2, X_train[:, 1]**2))
 X_test_model5 = np.column_stack((X_test[:, 2], X_test[:, 0]**2, X_test[:, 1]**2))
 
-# Function to estimate model parameters using the normal equation
-def linear_regression_normal_equation(X, y):
-    X_with_bias = np.column_stack((np.ones(len(X)), X))
-    theta = np.linalg.inv(X_with_bias.T @ X_with_bias) @ X_with_bias.T @ y
-    return theta
-
-# Estimate model parameters using the training dataset
-theta_model5 = linear_regression_normal_equation(X_train_model5, y_train)
+# Estimate parameters using the training dataset
+theta_model5 = compute_linear_regression(X_train_model5, y_train)
 print("Estimated Parameters:", theta_model5)
 
-# Compute model predictions on the testing dataset
+# Compute predictions on the testing dataset
 X_test_with_bias_model5 = np.column_stack((np.ones(len(X_test_model5)), X_test_model5))
 y_pred_model5 = np.dot(X_test_with_bias_model5, theta_model5)
-print('Output Prediction on Testing Dataset is',y_pred_model5)
+print('Output Prediction on Testing Dataset:', y_pred_model5)
 
 # Calculate Residuals
 residuals = y_test - y_pred_model5
 
 # Calculate RSS
-RSS = np.sum(residuals ** 2)
-print(f"Residual Sum of Squares (RSS): {RSS}")
+rss = np.sum(residuals ** 2)
+print(f"Residual Sum of Squares (RSS): {rss}")
 
 # Compute 95% confidence intervals using statsmodels
 X_train_with_bias_model5 = np.column_stack((np.ones(len(X_train_model5)), X_train_model5))
@@ -326,24 +312,15 @@ plt.title('Distribution of Output Data (y_train)')
 plt.legend()
 plt.show()
 
-
-
-
 #--------------------------------------------------------
-#TASK 3
+# TASK 3
 #-------------------------------------------------------
 
-
-# Step 1: Assume you have estimated parameters from Task 2.1
-# Here Task 2.1 values for Model5 [ 0.57269652 -1.08848322  1.70512167 -0.25593985]
+# Estimated parameters from Task 2.1
 theta_bias = 1.70512167
 theta1 = 0.57269652
 theta2 = -0.25593985
 theta3 = -1.08848322
-
-
-# Example values from Task 2.1
-theta = [theta_bias, theta1, theta2, theta3]  # Add other parameters if necessary
 
 # Define ranges for the uniform prior around the estimated values
 prior_ranges = {
@@ -351,33 +328,9 @@ prior_ranges = {
     'theta1': (theta1 - 1, theta1 + 1)
 }
 
+# Function to simulate the model output based on given parameters
 def simulate_model(theta_bias, theta1, theta2, theta3, X):
-    """
-    Simulates the model output based on given parameters.
-
-    Parameters:
-    - theta_bias: Bias parameter to be estimated.
-    - theta1: First parameter to be estimated.
-    - theta2: Fixed parameter.
-    - theta3: Fixed parameter.
-    - X: Input data matrix.
-
-    Returns:
-    - Model output: Predicted values based on the model.
-    """
-    model_output = (theta_bias
-                    + theta1 * X[:, 0]  # x1
-                    + theta2 * (X[:, 1] ** 2)  # x2^2
-                    + theta3 * (X[:, 2] ** 2))  # x3^2
-    return model_output
-
-
-# Perform Rejection ABC
-accepted_samples = []
-tolerance = 0.1
-num_samples = 1000
-max_iterations = 100000  # Maximum iterations to avoid infinite loop
-iteration = 0
+    return (theta_bias + theta1 * X[:, 0] + theta2 * (X[:, 1] ** 2) + theta3 * (X[:, 2] ** 2))
 
 # Perform Rejection ABC
 accepted_samples = []
